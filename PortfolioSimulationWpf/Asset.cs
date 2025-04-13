@@ -90,6 +90,10 @@ namespace PortfolioSimulationWpf
         {
             get => EntryPrice * Quantity;
         }
+        public decimal PnL
+        {
+            get => TotalValue - EntryTotalValue;
+        }
         private void OnPropertyChanged([CallerMemberName]string propertyName="") 
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -97,7 +101,9 @@ namespace PortfolioSimulationWpf
 
         public void Simulate()
         {
-            double percentChange = (rng.NextDouble() * 100) - 0.05;
+            // Generate a percentage change between -5% and +5%
+            double percentChange = (rng.NextDouble() * 0.10) - 0.05; // (-0.05 to +0.05)
+
             decimal lastPrice = CurrentPrice;
             decimal newPrice = lastPrice + (lastPrice * (decimal)percentChange);
             newPrice = Math.Round(newPrice, 2);
@@ -106,6 +112,12 @@ namespace PortfolioSimulationWpf
                 newPrice = 1m;
 
             priceHisotry.Add(newPrice);
+
+            // Notify WPF about all the updated properties
+            OnPropertyChanged(nameof(PriceHisotry));
+            OnPropertyChanged(nameof(CurrentPrice));
+            OnPropertyChanged(nameof(TotalValue));
+            OnPropertyChanged(nameof(PnL));
         }
     }
 }

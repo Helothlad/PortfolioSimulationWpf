@@ -16,9 +16,24 @@ namespace PortfolioSimulationWpf
     /// </summary>
     public partial class MainWindow : Window
     {
+        private ViewModel vm;
         public MainWindow()
         {
             InitializeComponent();
+            if(this.DataContext is ViewModel vm)
+            {
+                this.vm = vm;
+            }
+            else
+            {
+                this.vm = new ViewModel();
+                this.DataContext = this.vm;
+            }
+        }
+
+        private void SimulateClick(object sender, RoutedEventArgs e)
+        {
+            this.vm.SimulateDay();
         }
     }
 }
