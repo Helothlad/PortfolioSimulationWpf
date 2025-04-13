@@ -36,7 +36,7 @@ namespace PortfolioSimulationWpf
         } 
         public Asset(string ticker, AssetType assetType, int quantity)
         {
-            this.ticker= ticker;
+            this.ticker = ticker;
             this.assetType = assetType;
             this.quantity = quantity;
             rng = new Random();
@@ -80,11 +80,16 @@ namespace PortfolioSimulationWpf
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(TotalValue));
                 }
-                
-            
             }
         }
-
+        public decimal EntryPrice
+        {
+            get => PriceHisotry.FirstOrDefault();
+        }
+        public decimal EntryTotalValue
+        {
+            get => EntryPrice * Quantity;
+        }
         private void OnPropertyChanged([CallerMemberName]string propertyName="") 
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
