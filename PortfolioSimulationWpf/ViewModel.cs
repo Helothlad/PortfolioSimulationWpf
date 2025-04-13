@@ -22,6 +22,13 @@ namespace PortfolioSimulationWpf
                 new Asset("SPY", AssetType.ETF, 5)
             };
         }
-
+        public void SimulateDay()
+        {
+            foreach (var asset in Assets)
+            {
+                asset.Simulate();
+            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TotalAssetsValue)));
+        }
     }
 }
