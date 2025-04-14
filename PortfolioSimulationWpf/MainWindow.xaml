@@ -9,14 +9,76 @@
     <Window.DataContext>
         <local:ViewModel/>
     </Window.DataContext>
+    <Window.Resources>
+        <local:PnLToBrushConverter x:Key="PnLToBrush"/>
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
-
         <StackPanel Grid.Column="0" Margin="20">
+            <DockPanel>
+                <Label Content="Account" FontWeight="Bold" FontSize="20" DockPanel.Dock="Left"/>
+                <Label Content="{Binding TotalValue}" ContentStringFormat="{}{0} $" FontSize="20" FontWeight="Bold" HorizontalAlignment="Right"/>
+            </DockPanel>
+            <Separator Margin="0,10" />
+            <DockPanel>
+                <Label Content="Cash amount" FontWeight="Bold" FontSize="16" DockPanel.Dock="Left"/>
+                <Label Content="{Binding Cash}" ContentStringFormat="{}{0} $" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right"/>
+            </DockPanel>
+            <DockPanel>
+                <Label Content="Assets value" FontWeight="Bold" FontSize="16" DockPanel.Dock="Left"/>
+                <Label Content="{Binding TotalAssetsValue}" ContentStringFormat="{}{0} $" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right"/>
+            </DockPanel>
+            <DockPanel>
+                <Label Content="PnL" FontWeight="Bold" FontSize="16" DockPanel.Dock="Left"/>
+                <Label Content="{Binding TotalPnl}" ContentStringFormat="{}{0} $" FontSize="16" FontWeight="Bold" 
+                       HorizontalAlignment="Right" Foreground="{Binding TotalPnl, Converter={StaticResource PnLToBrush}}"/>
+            </DockPanel>
+            
+            <Separator Margin="0,10" />
+            
+            <Button Content="Buy" FontSize="20" Click="SimulateClick" Background="CadetBlue" Margin="0,10,0,10">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="10" />
+                    </Style>
+                </Button.Resources>
+            </Button>
+
+            <Button Content="Sell" FontSize="20" Click="SimulateClick" Background="CadetBlue" Margin="0,10,0,10">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="10" />
+                    </Style>
+                </Button.Resources>
+            </Button>
+
+            <Button Content="New Position" FontSize="20" Click="SimulateClick" Background="CadetBlue" Margin="0,10,0,10">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="10" />
+                    </Style>
+                </Button.Resources>
+            </Button>
+            
+            <Separator Margin="0,10" />
+            
+            <Button Content="Simulate Day" FontSize="20" FontWeight="Bold" Click="SimulateClick" Background="CadetBlue" Margin="0,10,0,10">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="10" />
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </StackPanel>
+        <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Stretch" Background="DimGray"/>
+        
+        <StackPanel Grid.Column="2" Margin="20">
             <!-- Header Row -->
+            <Label Content="Your Holdings" FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
@@ -29,8 +91,6 @@
                 <TextBlock Text="Quantity" FontWeight="Bold" FontSize="14" Grid.Column="2"/>
                 <TextBlock Text="PnL" FontWeight="Bold" FontSize="14" Grid.Column="3"/>
             </Grid>
-
-            <!-- List of Assets -->
             <ListBox ItemsSource="{Binding Assets}" SelectedItem="{Binding SelectedAsset}" BorderThickness="0" HorizontalContentAlignment="Stretch">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -45,15 +105,15 @@
                                 <TextBlock Text="{Binding Ticker}" FontSize="14" Grid.Column="0"/>
                                 <TextBlock Text="{Binding CurrentPrice}" FontSize="14" Grid.Column="1"/>
                                 <TextBlock Text="{Binding Quantity}" FontSize="14" Grid.Column="2"/>
-                                <TextBlock Text="{Binding PnL}" FontSize="14" Grid.Column="3"/>
+                                <TextBlock Text="{Binding PnL}" FontSize="14" Grid.Column="3" 
+                                           Foreground="{Binding PnL, Converter={StaticResource PnLToBrush}}"/>
                             </Grid>
                         </Border>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
+            
         </StackPanel>
-        <StackPanel Grid.Column="1" Margin="20">
-            <Button Content="Simulate Day" Margin="20" FontSize="24" Click="SimulateClick"/>
-        </StackPanel>
+        
     </Grid>
 </Window>
