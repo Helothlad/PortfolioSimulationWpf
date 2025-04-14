@@ -35,5 +35,28 @@ namespace PortfolioSimulationWpf
         {
             this.vm.SimulateDay();
         }
+
+        private void BuyClick(object sender, RoutedEventArgs e)
+        {
+            if(this.vm.SelectedAsset != null)
+            {
+                BuyWindow bw = new BuyWindow(this.vm.SelectedAsset);
+                bw.ShowDialog();
+            }
+        }
+
+        private void SellClick(object sender, RoutedEventArgs e)
+        {
+            if(this.vm.SelectedAsset != null)
+            {
+                SellWindow sw = new SellWindow(this.vm.SelectedAsset);
+                sw.ShowDialog();
+            }
+        }
+
+        private void NewPositionClick(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

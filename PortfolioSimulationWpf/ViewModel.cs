@@ -2,21 +2,54 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace PortfolioSimulationWpf
 {
     internal class ViewModel : INotifyPropertyChanged
     {
-        
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        private decimal cash;
+        private Asset? selectedAsset;
+
         public BindingList<Asset> Assets { get; private set; }
-        public Asset? SelectedAsset { get; set; }
-        public decimal Cash { get; private set; }
+
+        public Asset? SelectedAsset
+        {
+            get => selectedAsset;
+            set
+            {
+                if (selectedAsset != value)
+                {
+                    selectedAsset = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public decimal Cash
+        {
+            get => cash;
+            set
+            {
+                if (cash != value)
+                {
+                    cash = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(TotalValue));
+                }
+            }
+        }
+
         public decimal TotalAssetsValue => Assets.Sum(a => a.TotalValue);
-        public decimal TotalPnl => Assets.Sum(a => a.PnL);
+
+        public decimal TotalRealizedPnL => Assets.Sum(a => a.RealizedPnL);
+
+        public decimal TotalUnrealizedPnL => Assets.Sum(a => a.UnrealizedPnL);
+
         public decimal TotalValue => Cash + TotalAssetsValue;
+
         public ViewModel()
         {
             this.Assets = new BindingList<Asset>()
@@ -25,17 +58,37 @@ namespace PortfolioSimulationWpf
                 new Asset("BTC", AssetType.Crypto, 1),
                 new Asset("SPY", AssetType.ETF, 5)
             };
-            Cash = new decimal(3000);
+            Cash = 3000m;
+
+            this.Assets.ListChanged += (s, e) =>
+            {
+                OnPropertyChanged(nameof(TotalAssetsValue));
+                OnPropertyChanged(nameof(TotalRealizedPnL));
+                OnPropertyChanged(nameof(TotalUnrealizedPnL));
+                OnPropertyChanged(nameof(TotalValue));
+            };
         }
+
         public void SimulateDay()
         {
             foreach (var asset in Assets)
             {
                 asset.Simulate();
             }
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TotalAssetsValue)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TotalPnl)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TotalValue)));
+            NotifyTotalsChanged();
+        }
+
+        public void NotifyTotalsChanged()
+        {
+            OnPropertyChanged(nameof(TotalAssetsValue));
+            OnPropertyChanged(nameof(TotalRealizedPnL));
+            OnPropertyChanged(nameof(TotalUnrealizedPnL));
+            OnPropertyChanged(nameof(TotalValue));
+        }
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -13,11 +13,11 @@ namespace PortfolioSimulationWpf
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            decimal pnl = (decimal)value;
-            if(pnl > 0)
+            decimal unRealisedPnl = (decimal)value;
+            if(unRealisedPnl > 0)
             {
                 return Brushes.Green;
-            }else if(pnl < 0)
+            }else if(unRealisedPnl < 0)
             {
                 return Brushes.Red;
             }
