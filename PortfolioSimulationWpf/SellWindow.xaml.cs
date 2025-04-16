@@ -57,24 +57,14 @@ namespace PortfolioSimulationWpf
         {
             if (Application.Current.MainWindow.DataContext is ViewModel vm)
             {
-                if (SellQuantity <= Asset.Quantity)
+                try
                 {
-                    decimal saleProceeds = SellQuantity * Asset.CurrentPrice;
-                    decimal costBasis = SellQuantity * Asset.AverageEntryPrice;
-                    decimal realized = saleProceeds - costBasis;
-
-                    Asset.Quantity -= SellQuantity;
-                    Asset.RealizedPnL += realized;
-
-                    // No need to adjust averageEntryPrice when selling
-
-                    vm.Cash += saleProceeds;
-                    vm.NotifyTotalsChanged();
-                    this.Close();
+                    vm.SellAsset(Asset, SellQuantity);
+                    Close();
                 }
-                else
+                catch(Exception ex)
                 {
-                    MessageBox.Show("You don't own that many units.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(ex.Message, "Sell Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
         }

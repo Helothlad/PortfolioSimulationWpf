@@ -120,6 +120,14 @@ namespace PortfolioSimulationWpf
             priceHistory = new List<decimal>() { initialPrice };
             this.averageEntryPrice = initialPrice;
         }
+        public Asset(string ticker, AssetType assetType, int quantity, decimal initialPrice)
+        {
+            this.ticker = ticker;
+            this.assetType = assetType;
+            this.quantity = quantity;
+            this.priceHistory = new List<decimal>() { initialPrice };
+            this.averageEntryPrice = initialPrice;
+        }
 
         public void Simulate()
         {

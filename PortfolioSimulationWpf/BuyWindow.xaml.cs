@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,10 +18,15 @@ namespace PortfolioSimulationWpf
     /// <summary>
     /// Interaction logic for BuyWindow.xaml
     /// </summary>
-    public partial class BuyWindow : Window
+    public partial class BuyWindow : Window, INotifyPropertyChanged
     {
         public decimal AvailableCash { get; set; }
-        public int BuyQuantity { get; set; }
+        private int buyQuantity;
+        public int BuyQuantity
+        {
+            get { return buyQuantity; }
+            set {  this.buyQuantity = value;OnPropertyChanged(nameof(BuyQuantity));OnPropertyChanged(nameof(TotalCost)); }
+        }
         public Asset Asset { get; set; }
         public decimal TotalCost => BuyQuantity * Asset.CurrentPrice;
         public BuyWindow(Asset asset)
@@ -36,10 +42,11 @@ namespace PortfolioSimulationWpf
             this.DataContext = this;                
         }
 
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         private void IncreaseClick(object sender, RoutedEventArgs e)
         {
             BuyQuantity++;
-            Refresh();
         }
 
         private void DecreaseClick(object sender, RoutedEventArgs e)
@@ -47,16 +54,9 @@ namespace PortfolioSimulationWpf
             if(BuyQuantity > 1) 
             {
                 BuyQuantity--;
-                Refresh();
             }
         }
-        private void Refresh()
-        {
-            // Refresh bindings manually
-            this.DataContext = null;
-            this.DataContext = this;
-        }
-
+       
         private void ConfirmClick(object sender, RoutedEventArgs e)
         {
             if (Application.Current.MainWindow.DataContext is ViewModel vm)
@@ -80,6 +80,10 @@ namespace PortfolioSimulationWpf
                     MessageBox.Show("Insuffient funds to complete this purchase.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
+        }
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
 

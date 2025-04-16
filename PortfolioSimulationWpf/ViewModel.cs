@@ -6,7 +6,8 @@ using System.Runtime.CompilerServices;
 
 namespace PortfolioSimulationWpf
 {
-    internal class ViewModel : INotifyPropertyChanged
+    
+    public class ViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -89,6 +90,26 @@ namespace PortfolioSimulationWpf
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        public void SellAsset(Asset asset, int quantityToSell)
+        {
+            if (quantityToSell <= 0 || quantityToSell > asset.Quantity)
+                throw new ArgumentException("Invalid quantity to sell.");
+
+            decimal proceeds = quantityToSell * asset.CurrentPrice;
+            decimal costBasis = quantityToSell * asset.AverageEntryPrice;
+            decimal realizedPnL = proceeds - costBasis;
+
+            asset.Quantity -= quantityToSell;
+            asset.RealizedPnL += realizedPnL;
+            Cash += proceeds;
+
+            if (asset.Quantity == 0)
+            {
+                Assets.Remove(asset);
+            }
+
+            NotifyTotalsChanged();
         }
     }
 }

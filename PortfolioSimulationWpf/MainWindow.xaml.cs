@@ -56,7 +56,8 @@ namespace PortfolioSimulationWpf
 
         private void NewPositionClick(object sender, RoutedEventArgs e)
         {
-
+            NewPositionWindow npw = new NewPositionWindow(vm);
+            npw.ShowDialog();
         }
     }
 }
