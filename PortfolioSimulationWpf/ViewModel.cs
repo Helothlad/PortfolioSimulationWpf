@@ -132,6 +132,9 @@ namespace PortfolioSimulationWpf
                 Assets.Remove(asset);
             }
 
+            // Refresh the filtered list to update UI automatically
+            UpdateFilteredAssets();
+
             NotifyTotalsChanged();
         }
         private void RefreshFilter()
@@ -139,7 +142,8 @@ namespace PortfolioSimulationWpf
             FilteredAssets.RaiseListChangedEvents = false;
             FilteredAssets.Clear();
 
-            IEnumerable<Asset> filtered = Assets;
+            // Filter the assets based on the filter criteria and exclude those with 0 quantity
+            IEnumerable<Asset> filtered = Assets.Where(a => a.Quantity > 0);  // Exclude assets with 0 quantity
 
             if (IsFilterEnabled)
             {
@@ -154,7 +158,7 @@ namespace PortfolioSimulationWpf
                 }
                 else
                 {
-                    filtered = Assets.Where(a => a.AssetType == SelectedAssetTypeFilter);
+                    filtered = filtered.Where(a => a.AssetType == SelectedAssetTypeFilter);
                 }
             }
 

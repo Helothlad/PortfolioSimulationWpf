@@ -118,8 +118,11 @@ namespace PortfolioSimulationWpf
             var existing = viewModel.Assets.FirstOrDefault(a => a.Ticker == SelectedAsset.Ticker);
             if (existing != null)
             {
-                MessageBox.Show($"You already have a position in this stock, go on buy more");
-                return;
+                existing.Quantity += BuyQuantity;
+                existing.AverageEntryPrice = (existing.AverageEntryPrice * existing.Quantity + SelectedAsset.CurrentPrice * BuyQuantity) / (existing.Quantity + BuyQuantity);
+                viewModel.Cash -= TotalCost;
+                viewModel.NotifyTotalsChanged();
+                MessageBox.Show($"You bought {BuyQuantity} more of {SelectedAsset.Ticker} for {TotalCost:C}. Your new quantity is {existing.Quantity}.");
             }
             else
             {
@@ -130,9 +133,8 @@ namespace PortfolioSimulationWpf
                     SelectedAsset.CurrentPrice));
                 viewModel.Cash -= TotalCost;
                 viewModel.UpdateFilteredAssets();
+                MessageBox.Show($"You bought {BuyQuantity} of {SelectedAsset.Ticker} for {TotalCost:C}.");
             }
-
-            MessageBox.Show($"You bought {BuyQuantity} of {SelectedAsset.Ticker} for {TotalCost:C}.");
             Close();
         }
     }
