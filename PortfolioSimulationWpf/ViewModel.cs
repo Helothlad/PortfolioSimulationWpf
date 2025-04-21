@@ -127,12 +127,6 @@ namespace PortfolioSimulationWpf
             asset.RealizedPnL += realizedPnL;
             Cash += proceeds;
 
-            if (asset.Quantity == 0)
-            {
-                Assets.Remove(asset);
-            }
-
-            // Refresh the filtered list to update UI automatically
             UpdateFilteredAssets();
 
             NotifyTotalsChanged();
