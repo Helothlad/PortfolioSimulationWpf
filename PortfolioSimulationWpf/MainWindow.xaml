@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PortfolioSimulationWpf"
+        xmlns:helpers="clr-namespace:PortfolioSimulationWpf"
         mc:Ignorable="d"
         Title="MainWindow" Height="500" Width="800">
     <Window.DataContext>
@@ -82,11 +83,20 @@
                 </Button.Resources>
             </Button>
         </StackPanel>
+        
         <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Stretch" Background="DimGray"/>
         
         <StackPanel Grid.Column="2" Margin="20">
             <!-- Header Row -->
             <Label Content="Your Holdings" FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10" HorizontalAlignment="Right">
+                <CheckBox Content="Enable filter"
+                    IsChecked="{Binding IsFilterEnabled}"
+                    Margin="10,3,10,0"/>
+                <ComboBox Width="120"
+                          ItemsSource="{x:Static helpers:EnumHelper.AssetTypes}"
+                          SelectedItem="{Binding SelectedAssetTypeFilter}"/>
+            </StackPanel>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
@@ -99,7 +109,7 @@
                 <TextBlock Text="Quantity" FontWeight="Bold" FontSize="14" Grid.Column="2"/>
                 <TextBlock Text="PnL" FontWeight="Bold" FontSize="14" Grid.Column="3"/>
             </Grid>
-            <ListBox ItemsSource="{Binding Assets}" SelectedItem="{Binding SelectedAsset}" BorderThickness="0" HorizontalContentAlignment="Stretch">
+            <ListBox ItemsSource="{Binding FilteredAssets}" SelectedItem="{Binding SelectedAsset}" BorderThickness="0" HorizontalContentAlignment="Stretch">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Border BorderBrush="LightGray" BorderThickness="0.5" Padding="5">

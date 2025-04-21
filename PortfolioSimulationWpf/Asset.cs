@@ -14,6 +14,10 @@ namespace PortfolioSimulationWpf
         Bond,
         Commodity
     }
+    public static class EnumHelper
+    {
+        public static Array AssetTypes => Enum.GetValues(typeof(AssetType));
+    }
 
     public class Asset : INotifyPropertyChanged
     {

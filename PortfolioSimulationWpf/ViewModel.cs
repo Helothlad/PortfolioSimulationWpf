@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows.Data;
 
 namespace PortfolioSimulationWpf
 {
@@ -13,9 +14,10 @@ namespace PortfolioSimulationWpf
 
         private decimal cash;
         private Asset? selectedAsset;
-
+        private AssetType? selectedAssetTypeFilter;
+        private bool isFilterEnabled;
+        public BindingList<Asset> FilteredAssets { get; private set; }
         public BindingList<Asset> Assets { get; private set; }
-
         public Asset? SelectedAsset
         {
             get => selectedAsset;
@@ -28,7 +30,26 @@ namespace PortfolioSimulationWpf
                 }
             }
         }
-
+        public AssetType? SelectedAssetTypeFilter
+        {
+            get => selectedAssetTypeFilter;
+            set
+            {
+                selectedAssetTypeFilter = value;
+                OnPropertyChanged();
+                RefreshFilter();
+            }
+        }
+        public bool IsFilterEnabled
+        {
+            get => isFilterEnabled;
+            set
+            {
+                isFilterEnabled = value;
+                OnPropertyChanged();
+                RefreshFilter();
+            }
+        }
         public decimal Cash
         {
             get => cash;
@@ -59,6 +80,8 @@ namespace PortfolioSimulationWpf
                 new Asset("BTC", AssetType.Crypto, 1),
                 new Asset("SPY", AssetType.ETF, 5)
             };
+            this.FilteredAssets = new BindingList<Asset>(this.Assets.ToList());
+
             Cash = 3000m;
 
             this.Assets.ListChanged += (s, e) =>
@@ -110,6 +133,40 @@ namespace PortfolioSimulationWpf
             }
 
             NotifyTotalsChanged();
+        }
+        private void RefreshFilter()
+        {
+            FilteredAssets.RaiseListChangedEvents = false;
+            FilteredAssets.Clear();
+
+            IEnumerable<Asset> filtered = Assets;
+
+            if (IsFilterEnabled)
+            {
+                if (SelectedAssetTypeFilter == null)
+                {
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        System.Windows.MessageBox.Show("Please select an asset type before enabling the filter");
+                    });
+
+                    IsFilterEnabled = false;
+                }
+                else
+                {
+                    filtered = Assets.Where(a => a.AssetType == SelectedAssetTypeFilter);
+                }
+            }
+
+            foreach (var asset in filtered)
+                FilteredAssets.Add(asset);
+
+            FilteredAssets.RaiseListChangedEvents = true;
+            FilteredAssets.ResetBindings();
+        }
+        public void UpdateFilteredAssets()
+        {
+            RefreshFilter();
         }
     }
 }

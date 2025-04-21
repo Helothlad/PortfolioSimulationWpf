@@ -34,14 +34,14 @@ namespace PortfolioSimulationWpf
                 new Asset("NVDA", AssetType.Stock, 0),
                 new Asset("BRK.A", AssetType.Stock, 0),
                 new Asset("NFLX", AssetType.Stock, 0),
-                new Asset("DIS", AssetType.Stock, 0)
+                new Asset("Austrian GVBond", AssetType.Bond, 0),
+                new Asset("GOLD", AssetType.Commodity, 0)
             };
 
             AvailableCash = vm.Cash;
 
             AssetComboBox.ItemsSource = AvailableAssets;
         }
-
         public List<Asset> AvailableAssets
         {
             get => availableAssets;
@@ -51,7 +51,6 @@ namespace PortfolioSimulationWpf
                 OnPropertyChanged();
             }
         }
-
         public Asset? SelectedAsset
         {
             get => selectedAsset;
@@ -62,7 +61,6 @@ namespace PortfolioSimulationWpf
                 OnPropertyChanged(nameof(TotalCost));
             }
         }
-
         public int BuyQuantity
         {
             get => buyQuantity;
@@ -76,7 +74,6 @@ namespace PortfolioSimulationWpf
                 }
             }
         }
-
         public decimal AvailableCash
         {
             get => availableCash;
@@ -86,9 +83,22 @@ namespace PortfolioSimulationWpf
                 OnPropertyChanged();
             }
         }
-
         public decimal TotalCost => SelectedAsset != null ? SelectedAsset.CurrentPrice * BuyQuantity : 0;
-
+        private void IncreaseClick(object sender, RoutedEventArgs e)
+        {
+            BuyQuantity++;
+        }
+        private void DecreaseClick(object sender, RoutedEventArgs e)
+        {
+            if (BuyQuantity > 1)
+            {
+                BuyQuantity--;
+            }
+        }
+        private void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
         private void ConfirmClick(object sender, RoutedEventArgs e)
         {
             if (SelectedAsset == null)
@@ -97,16 +107,16 @@ namespace PortfolioSimulationWpf
                 return;
             }
 
-            if(TotalCost > availableCash)
+            if (TotalCost > availableCash)
             {
                 MessageBox.Show($"You do not have enough cash.");
                 return;
             }
 
-            
+
 
             var existing = viewModel.Assets.FirstOrDefault(a => a.Ticker == SelectedAsset.Ticker);
-            if(existing != null)
+            if (existing != null)
             {
                 MessageBox.Show($"You already have a position in this stock, go on buy more");
                 return;
@@ -119,28 +129,11 @@ namespace PortfolioSimulationWpf
                     BuyQuantity,
                     SelectedAsset.CurrentPrice));
                 viewModel.Cash -= TotalCost;
+                viewModel.UpdateFilteredAssets();
             }
 
             MessageBox.Show($"You bought {BuyQuantity} of {SelectedAsset.Ticker} for {TotalCost:C}.");
             Close();
-        }
-
-        private void IncreaseClick(object sender, RoutedEventArgs e)
-        {
-            BuyQuantity++;
-        }
-
-        private void DecreaseClick(object sender, RoutedEventArgs e)
-        {
-            if (BuyQuantity > 1)
-            {
-                BuyQuantity--;
-            }
-        }
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
