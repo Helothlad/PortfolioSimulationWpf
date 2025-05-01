@@ -3,61 +3,72 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows.Data;
+using System.Windows;
 
 namespace PortfolioSimulationWpf
 {
-    
     public class ViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private decimal cash;
-        private Asset? selectedAsset;
-        private AssetType? selectedAssetTypeFilter;
-        private bool isFilterEnabled;
-        public BindingList<Asset> FilteredAssets { get; private set; }
-        public BindingList<Asset> Assets { get; private set; }
+        private decimal _cash;
+        private Asset? _selectedAsset;
+        private AssetType? _selectedAssetTypeFilter;
+        private bool _isFilterEnabled;
+
+        public BindingList<Asset> FilteredAssets { get; }
+        public BindingList<Asset> Assets { get; }
+        public BindingList<Asset> SoldAssets { get; }
+
         public Asset? SelectedAsset
         {
-            get => selectedAsset;
+            get => _selectedAsset;
             set
             {
-                if (selectedAsset != value)
+                if (_selectedAsset != value)
                 {
-                    selectedAsset = value;
+                    _selectedAsset = value;
                     OnPropertyChanged();
                 }
             }
         }
+
         public AssetType? SelectedAssetTypeFilter
         {
-            get => selectedAssetTypeFilter;
+            get => _selectedAssetTypeFilter;
             set
             {
-                selectedAssetTypeFilter = value;
-                OnPropertyChanged();
-                RefreshFilter();
+                if (_selectedAssetTypeFilter != value)
+                {
+                    _selectedAssetTypeFilter = value;
+                    OnPropertyChanged();
+                    RefreshFilter();
+                }
             }
         }
+
         public bool IsFilterEnabled
         {
-            get => isFilterEnabled;
+            get => _isFilterEnabled;
             set
             {
-                isFilterEnabled = value;
-                OnPropertyChanged();
-                RefreshFilter();
+                if (_isFilterEnabled != value)
+                {
+                    _isFilterEnabled = value;
+                    OnPropertyChanged();
+                    RefreshFilter();
+                }
             }
         }
+
         public decimal Cash
         {
-            get => cash;
+            get => _cash;
             set
             {
-                if (cash != value)
+                if (_cash != value)
                 {
-                    cash = value;
+                    _cash = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(TotalValue));
                 }
@@ -65,32 +76,104 @@ namespace PortfolioSimulationWpf
         }
 
         public decimal TotalAssetsValue => Assets.Sum(a => a.TotalValue);
-
-        public decimal TotalRealizedPnL => Assets.Sum(a => a.RealizedPnL);
-
         public decimal TotalUnrealizedPnL => Assets.Sum(a => a.UnrealizedPnL);
-
         public decimal TotalValue => Cash + TotalAssetsValue;
+
+        // Realized PnL is tracked by sold assets' (SalePrice - AverageEntryPrice) * Quantity
+        public decimal TotalRealizedPnL => SoldAssets.Sum(a =>
+            (a.CurrentPrice - a.AverageEntryPrice) * a.Quantity);
 
         public ViewModel()
         {
-            this.Assets = new BindingList<Asset>()
+            Assets = new BindingList<Asset>
             {
                 new Asset("AAPL", AssetType.Stock, 10),
                 new Asset("BTC", AssetType.Crypto, 1),
                 new Asset("SPY", AssetType.ETF, 5)
             };
-            this.FilteredAssets = new BindingList<Asset>(this.Assets.ToList());
 
+            SoldAssets = new BindingList<Asset>();
+            FilteredAssets = new BindingList<Asset>(Assets.ToList());
             Cash = 3000m;
 
-            this.Assets.ListChanged += (s, e) =>
+            Assets.ListChanged += (s, e) => UpdateTotals();
+            SoldAssets.ListChanged += (s, e) => UpdateTotals();
+        }
+
+        public void SellAsset(Asset asset, int quantityToSell)
+        {
+            if (quantityToSell <= 0 || quantityToSell > asset.Quantity)
+                throw new ArgumentException("Invalid quantity to sell.");
+
+            // Create a copy of the asset for the sold portion
+            var soldAsset = new Asset(
+                asset.Ticker,
+                asset.AssetType,
+                quantityToSell,
+                asset.AverageEntryPrice)
             {
-                OnPropertyChanged(nameof(TotalAssetsValue));
-                OnPropertyChanged(nameof(TotalRealizedPnL));
-                OnPropertyChanged(nameof(TotalUnrealizedPnL));
-                OnPropertyChanged(nameof(TotalValue));
+                PriceHistory = new List<decimal>(asset.PriceHistory)
             };
+
+            // Update the original asset
+            asset.Quantity -= quantityToSell;
+            asset.AverageEntryPrice = asset.Quantity > 0 ?
+                asset.AverageEntryPrice : 0; // Reset if fully sold
+
+            // Add to sold assets
+            SoldAssets.Add(soldAsset);
+
+            // Update cash
+            Cash += quantityToSell * asset.CurrentPrice;
+
+            // If fully sold, remove from assets
+            if (asset.Quantity == 0)
+            {
+                Assets.Remove(asset);
+            }
+
+            UpdateTotals();
+            RefreshFilter();
+        }
+
+        private void UpdateTotals()
+        {
+            OnPropertyChanged(nameof(TotalAssetsValue));
+            OnPropertyChanged(nameof(TotalUnrealizedPnL));
+            OnPropertyChanged(nameof(TotalRealizedPnL));
+            OnPropertyChanged(nameof(TotalValue));
+        }
+
+        private void RefreshFilter()
+        {
+            var filtered = Assets.AsEnumerable();
+
+            if (IsFilterEnabled && SelectedAssetTypeFilter != null)
+            {
+                filtered = filtered.Where(a => a.AssetType == SelectedAssetTypeFilter);
+            }
+
+            FilteredAssets.Clear();
+            foreach (var asset in filtered)
+            {
+                FilteredAssets.Add(asset);
+            }
+        }
+        public void NotifyTotalsChanged()
+        {
+            OnPropertyChanged(nameof(TotalAssetsValue));
+            OnPropertyChanged(nameof(TotalRealizedPnL));
+            OnPropertyChanged(nameof(TotalUnrealizedPnL));
+            OnPropertyChanged(nameof(TotalValue));
+        }
+        public void UpdateFilteredAssets()
+        {
+            RefreshFilter();
+        }
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public void SimulateDay()
@@ -99,72 +182,7 @@ namespace PortfolioSimulationWpf
             {
                 asset.Simulate();
             }
-            NotifyTotalsChanged();
-        }
-
-        public void NotifyTotalsChanged()
-        {
-            OnPropertyChanged(nameof(TotalAssetsValue));
-            OnPropertyChanged(nameof(TotalRealizedPnL));
-            OnPropertyChanged(nameof(TotalUnrealizedPnL));
-            OnPropertyChanged(nameof(TotalValue));
-        }
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        public void SellAsset(Asset asset, int quantityToSell)
-        {
-            if (quantityToSell <= 0 || quantityToSell > asset.Quantity)
-                throw new ArgumentException("Invalid quantity to sell.");
-
-            decimal proceeds = quantityToSell * asset.CurrentPrice;
-            decimal costBasis = quantityToSell * asset.AverageEntryPrice;
-            decimal realizedPnL = proceeds - costBasis;
-
-            asset.Quantity -= quantityToSell;
-            asset.RealizedPnL += realizedPnL;
-            Cash += proceeds;
-
-            UpdateFilteredAssets();
-
-            NotifyTotalsChanged();
-        }
-        private void RefreshFilter()
-        {
-            FilteredAssets.RaiseListChangedEvents = false;
-            FilteredAssets.Clear();
-
-            // Filter the assets based on the filter criteria and exclude those with 0 quantity
-            IEnumerable<Asset> filtered = Assets.Where(a => a.Quantity > 0);  // Exclude assets with 0 quantity
-
-            if (IsFilterEnabled)
-            {
-                if (SelectedAssetTypeFilter == null)
-                {
-                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        System.Windows.MessageBox.Show("Please select an asset type before enabling the filter");
-                    });
-
-                    IsFilterEnabled = false;
-                }
-                else
-                {
-                    filtered = filtered.Where(a => a.AssetType == SelectedAssetTypeFilter);
-                }
-            }
-
-            foreach (var asset in filtered)
-                FilteredAssets.Add(asset);
-
-            FilteredAssets.RaiseListChangedEvents = true;
-            FilteredAssets.ResetBindings();
-        }
-        public void UpdateFilteredAssets()
-        {
-            RefreshFilter();
+            UpdateTotals();
         }
     }
 }

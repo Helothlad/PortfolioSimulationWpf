@@ -118,11 +118,7 @@ namespace PortfolioSimulationWpf
             var existing = viewModel.Assets.FirstOrDefault(a => a.Ticker == SelectedAsset.Ticker);
             if (existing != null)
             {
-                existing.Quantity += BuyQuantity;
-                existing.AverageEntryPrice = (existing.AverageEntryPrice * existing.Quantity + SelectedAsset.CurrentPrice * BuyQuantity) / (existing.Quantity + BuyQuantity);
-                viewModel.Cash -= TotalCost;
-                viewModel.NotifyTotalsChanged();
-                MessageBox.Show($"You bought {BuyQuantity} more of {SelectedAsset.Ticker} for {TotalCost:C}. Your new quantity is {existing.Quantity}.");
+                MessageBox.Show($"You already hold shares of this assets");
             }
             else
             {

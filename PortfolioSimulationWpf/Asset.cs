@@ -26,7 +26,6 @@ namespace PortfolioSimulationWpf
         private AssetType assetType;
         private int quantity;
         private List<decimal> priceHistory;
-        private decimal realizedPnL = 0;
         private decimal averageEntryPrice;
 
         public static Random rng = new Random();
@@ -53,7 +52,7 @@ namespace PortfolioSimulationWpf
                     quantity = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(TotalValue));
-                    OnPropertyChanged(nameof(PnL));
+                    OnPropertyChanged(nameof(CostBasis));
                     OnPropertyChanged(nameof(UnrealizedPnL));
                 }
             }
@@ -62,6 +61,8 @@ namespace PortfolioSimulationWpf
         public decimal CurrentPrice => priceHistory.LastOrDefault();
 
         public decimal TotalValue => Quantity * CurrentPrice;
+
+        public decimal CostBasis => Quantity * AverageEntryPrice;
 
         public List<decimal> PriceHistory
         {
@@ -74,22 +75,7 @@ namespace PortfolioSimulationWpf
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(CurrentPrice));
                     OnPropertyChanged(nameof(TotalValue));
-                    OnPropertyChanged(nameof(PnL));
                     OnPropertyChanged(nameof(UnrealizedPnL));
-                }
-            }
-        }
-
-        public decimal RealizedPnL
-        {
-            get => realizedPnL;
-            set
-            {
-                if (realizedPnL != value)
-                {
-                    realizedPnL = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(PnL));
                 }
             }
         }
@@ -103,17 +89,13 @@ namespace PortfolioSimulationWpf
                 {
                     averageEntryPrice = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(PnL));
+                    OnPropertyChanged(nameof(CostBasis));
                     OnPropertyChanged(nameof(UnrealizedPnL));
                 }
             }
         }
 
-        public decimal EntryPrice => PriceHistory.FirstOrDefault();
-
-        public decimal UnrealizedPnL => (CurrentPrice - AverageEntryPrice) * Quantity;
-
-        public decimal PnL => RealizedPnL + UnrealizedPnL;
+        public decimal UnrealizedPnL => TotalValue - CostBasis;
 
         public Asset(string ticker, AssetType assetType, int quantity)
         {
@@ -124,6 +106,7 @@ namespace PortfolioSimulationWpf
             priceHistory = new List<decimal>() { initialPrice };
             this.averageEntryPrice = initialPrice;
         }
+
         public Asset(string ticker, AssetType assetType, int quantity, decimal initialPrice)
         {
             this.ticker = ticker;
@@ -148,7 +131,6 @@ namespace PortfolioSimulationWpf
             OnPropertyChanged(nameof(PriceHistory));
             OnPropertyChanged(nameof(CurrentPrice));
             OnPropertyChanged(nameof(TotalValue));
-            OnPropertyChanged(nameof(PnL));
             OnPropertyChanged(nameof(UnrealizedPnL));
         }
 
